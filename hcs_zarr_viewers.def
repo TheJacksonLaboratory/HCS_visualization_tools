@@ -1,0 +1,37 @@
+Bootstrap: docker
+From: python:3.8.8
+
+%post
+    # Install the OpenGL and XCB libraries to run napari
+    apt-get -y update
+    apt-get install -y libgles2-mesa-dev mesa-utils libx11-xcb-perl libxcb-composite0 libxcb-damage0 libxcb-doc libxcb-dpms0 libxcb-dri2-0 libxcb-dri3-0 libxcb-glx0 libxcb-present0 libxcb-randr0 libxcb-record0 libxcb-render0 libxcb-res0 libxcb-screensaver0 libxcb-shape0 libxcb-shm0 libxcb-sync1 libxcb-xf86dri0 libxcb-xfixes0 libxcb-xinerama0 libxcb-xinput0 libxcb-xkb1 libxcb-xtest0 libxcb-xv0 libxcb-xvmc0 libxcb1 libxcb-imdkit0 libxcb-util0 libxcb-cursor0 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-ewmh2 libxcb-icccm4 libxcb-xrm0 libxkbcommon-x11-0 libxkbcommon0 libxkbfile1 libdbus-1-3
+    pip install --upgrade pip
+    pip install blosc
+    pip install zarr
+    pip install napari[all]
+    pip install requests
+    pip install aiohttp
+    pip install scikit-image
+    pip install "jupyterlab<3.0.0"
+    pip install fsspec
+    pip install s3fs
+    pip install ome-zarr
+     
+    # Install neuroglancer
+    pip install neuroglancer
+    
+    # Install ImJoy to run Vizarr
+    curl -fsSL https://deb.nodesource.com/setup_17.x | bash -
+    apt-get install -y nodejs
+
+    pip install -U imjoy-jupyter-extension
+
+    # jupyter labextension install imjoy-jupyter-extension
+
+    ln -sf /usr/lib/x86_64-linux-gnu/libxcb-util.so.0.0.0 /usr/lib/x86_64-linux-gnu/libxcb-util.so.1.0.0
+    ln -sf /usr/lib/x86_64-linux-gnu/libxcb-util.so.0.0.0 /usr/lib/x86_64-linux-gnu/libxcb-util.so.1.0
+    ln -sf /usr/lib/x86_64-linux-gnu/libxcb-util.so.0.0.0 /usr/lib/x86_64-linux-gnu/libxcb-util.so.1
+
+%runscript
+    export HOSTNAME_IP=$(hostname -i)
+    exec python "$@"
