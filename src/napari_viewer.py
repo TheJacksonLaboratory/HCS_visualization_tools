@@ -1,22 +1,18 @@
 import argparse
-import dask_zarr as dz
+import numpy as np
+import dask.array as da
 import napari
+import zarr
 
 
-def main(z_url):
+def show_image(z_url, group):
+    z = zarr.open(z_url, mode="r")['%s' % group]
 
-    # Test example, knowing that the file contains only 3 groups, 
-    # and at most 10 scales
-    plane_names_scale = [['%s/%s' % (r, s) for r in [0]] for s in range(10)]
+    pyr = []
+    for r in z.keys():
+        pyr.append(np.moveaxis(da.from_zarr(z['%s' % r])[0, :, 0, ...], 0, -1))
 
-    # Retrieve a list of stacks to form the pyramid representation of the image
-    stack_list = [
-        dz.get_lazy_stacks(z_url, plane_names) 
-        for plane_names in plane_names_scale
-    ]
-
-    viewer = napari.Viewer()
-    img = viewer.add_image(stack_list, multiscale=True)
+    v = napari.view_image(pyr, multiscale=True, rgb=True)
     napari.run()
 
 
@@ -25,7 +21,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('-z', '--zurl', dest='z_url', type=str,
                         help='Path or url to a zarr file')
+    parser.add_argument('-g', '--group', dest='group', type=str,
+                        help='Group stored inside the zarr file')
 
     args = parser.parse_args()
 
-    main(args.z_url)
+    show_image(args.z_url, args.group)
